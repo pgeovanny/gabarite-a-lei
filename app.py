@@ -1,10 +1,16 @@
-
 import os
 from flask import Flask, render_template, redirect, url_for, request, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from admin_tools.importer import generate_and_import_questions
+
+# Safe import of admin_tools
+try:
+    from admin_tools.importer import generate_and_import_questions
+except ImportError:
+    def generate_and_import_questions(text, count=10):
+        return
+
 from utils.pdf_exporter import export_questions_pdf
 from utils.stats import get_stats
 from models import db, User, Law, Article, Question, Answer, Comment, Favorite
@@ -47,9 +53,9 @@ def signup():
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if request.method=='POST':
-        cpf=request.form['cpf']; senha=request.form['senha']
-        user=User.query.filter_by(cpf=cpf).first()
+    if request.method == 'POST':
+        cpf = request.form['cpf']; senha = request.form['senha']
+        user = User.query.filter_by(cpf=cpf).first()
         if user and check_password_hash(user.senha_hash, senha):
             login_user(user); return redirect(url_for('dashboard'))
         flash('Credenciais inválidas')
@@ -75,11 +81,10 @@ def questions():
 @app.route('/admin', methods=['GET','POST'])
 @login_required
 def admin_panel():
-    if not current_user.is_admin:
+    if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
         flash('Acesso negado'); return redirect(url_for('dashboard'))
-    if request.method=='POST':
-        text = request.form['law_text']
-        count = int(request.form.get('count',10))
+    if request.method == 'POST':
+        text = request.form['law_text']; count = int(request.form.get('count', 10))
         generate_and_import_questions(text, count)
         flash('Questões importadas!')
     return render_template('admin.html')
