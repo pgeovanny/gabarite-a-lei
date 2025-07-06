@@ -1,4 +1,6 @@
-tkinter
-pandas
+flask
+flask_sqlalchemy
+flask_login
+flask_wtf
+pdfkit
 matplotlib
-fpdf
