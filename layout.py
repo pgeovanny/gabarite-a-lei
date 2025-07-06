@@ -1,1 +1,0 @@
-# Interface gráfica com filtros e design moderno
